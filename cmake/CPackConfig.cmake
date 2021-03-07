@@ -41,7 +41,7 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
 
   # this allows to override above configuration per cpack generator at CPack-time
   set(CPACK_PROJECT_CONFIG_FILE "${CMAKE_BINARY_DIR}/cmake/CPack.cmake")
-  configure_file("${CMAKE_SOURCE_DIR}/cmake/CPack.cmake" "${CMAKE_BINARY_DIR}/cmake/CPack.cmake" @ONLY)
+  #configure_file("${CMAKE_SOURCE_DIR}/cmake/CPack.cmake" "${CMAKE_BINARY_DIR}/cmake/CPack.cmake" @ONLY)
 
   ## Generator-specific configuration ##
 
@@ -79,7 +79,7 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
   #  - components/groups are ordered alphabetically by component/group name; groups always come first
   #  - empty (e.g. OS-specific) components are discarded automatically
 
-  set(CPACK_COMPONENTS_ALL freeciv21 tool-ruledit tool-fcmp-cli tool-ruleup tool-manual translations)
+  set(CPACK_COMPONENTS_ALL freeciv21 tool_ruledit tool_fcmp_cli tool_ruleup tool_manual translations)
   set(CPACK_COMPONENT_FREECIV21_DISPLAY_NAME "All programs and supporting files to run Freeciv21. Includes Qt Client, Server and Qt Modpack Installer.")
   set(CPACK_COMPONENT_TOOL-RULEDIR_DISPLAY_NAME "Freeciv21 Ruleset Editor")
   set(CPACK_COMPONENT_TOOL-FCMP-CLI_DISPLAY_NAME "Modpack Installer Command Line Interpreter Edition")
