@@ -7,8 +7,7 @@ jobs:
   apply-clang-format:
     name: "Apply clang-format"
     runs-on: ubuntu-latest
-    if: contains(github.event.comment.body, 'Auto clang-format')
-    #if: github.event.issue.pull_request
+    if: github.event.issue.pull_request and contains(github.event.comment.body, 'Auto clang-format')
     steps:
       - uses: actions/github-script@v5
         with:
@@ -30,9 +29,9 @@ jobs:
       - name: Format the code
         run: |
           files=$(
-            git diff --name-only ${{ github.event.pull_request.base.ref }} HEAD
-            | grep -v dependencies/
-            | grep -E '(\.h|\.cpp)'
+            git diff --name-only ${{ github.event.pull_request.base.ref }} HEAD |
+            grep -v dependencies/ |
+            grep -E '(\.h|\.cpp)'
           )
           clang-format-11 -i $files
       - name: Create a commit
