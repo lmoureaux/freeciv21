@@ -30,12 +30,10 @@ jobs:
         env:
           BASE_REF: "${{ github.event.pull_request.base.ref }}"
         run: |
-          files=$(
-            git diff --name-only --diff-filter=r "$BASE_REF" HEAD \
-            | grep -v dependencies/ \
-            | grep -E '(\.h|\.cpp)'
-          )
-          clang-format-11 -i $files
+          find \! -name dependencies \
+            \( -name '*.h' -o -name '*.cpp' \) \
+            -print \
+            -exec clang-format-11 -i '{}' +
       - name: Create a commit
         run: |
           git set author.name '${{ github.event.comment.author.name }} via automation'
