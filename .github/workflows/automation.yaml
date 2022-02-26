@@ -30,7 +30,7 @@ jobs:
         env:
           BASE_REF: "${{ github.event.pull_request.base.ref }}"
         run: |
-          find \! -name dependencies \
+          find -name dependencies -prune -o \
             \( -name '*.h' -o -name '*.cpp' \) \
             -print \
             -exec clang-format-11 -i '{}' +
