@@ -109,7 +109,7 @@ namespace freeciv {
 layer_terrain::layer_terrain(struct tileset *ts, int number)
     : freeciv::layer(ts, LAYER_TERRAIN1), m_number(number)
 {
-}
+  }
 
 /**
  * \brief Creates a matching group with the given name.
@@ -118,10 +118,10 @@ layer_terrain::layer_terrain(struct tileset *ts, int number)
 bool layer_terrain::create_matching_group(const QString &name)
 {
   if (name.isEmpty()) {
-    tileset_error(tileset(), LOG_ERROR,
-                  _("[layer%d] match_types: names cannot be empty."),
-                  m_number);
-    return false;
+              tileset_error(tileset(), LOG_ERROR,
+      _("[layer%d] match_types: names cannot be empty."),
+                            m_number);
+              return false;
   }
 
   if (m_matching_groups.count(name.at(0)) != 0) {
