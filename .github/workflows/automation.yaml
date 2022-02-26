@@ -36,9 +36,8 @@ jobs:
             -exec clang-format-11 -i '{}' +
       - name: Create a commit
         run: |
-          git set author.name '${{ github.event.comment.author.name }} via automation'
-          git set author.email '${{ github.event.comment.author.email }}'
           git commit -a \
+            --author 'github-actions[bot] <actions@github.com>'
             -m "Automated clang-format" \
             -m "Files changed: $files" \
             -m "See PR #${{ github.event.pull_request.number }}"
