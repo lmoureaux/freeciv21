@@ -28,8 +28,9 @@ jobs:
           sudo apt-get install clang-format-11
       - name: Format the code
         env:
-          BASE_REF: "${{ github.event.pull_request.base.ref }}"
+          stuff: "${{ toJSON(github) }}"
         run: |
+          echo "$stuff"
           find -name dependencies -prune -o \
             \( -name '*.h' -o -name '*.cpp' \) \
             -print \
@@ -38,7 +39,8 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'actions@github.com>'
-          git commit -a \
+          # Only try to commit if clang-format changed something
+          git diff || git commit -a \
             -m "Automated clang-format" \
             -m "Files changed: $files" \
             -m "See PR #${{ github.event.pull_request.number }}"
