@@ -1,4 +1,4 @@
-name: Automationon:
+name: Automation
 issue_comment:
   types: [created]
 
@@ -25,8 +25,8 @@ jobs:
           clang-format-11 -i $files
       - name: Create a commit
         run: |
-          git set author.name 'Freeciv21 automation'
-          git set author.email 'freeciv21@longturn.net'
+          git set author.name '${{ github.event.comment.author.name }} via automation'
+          git set author.email '${{ github.event.comment.author.email }}'
           git commit -a \
             -m "Automated clang-format" \
             -m "Files changed: $files" \
