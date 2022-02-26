@@ -1,0 +1,33 @@
+name: Automationon:
+issue_comment:
+  types: [created]
+
+jobs:
+  apply-clang-format:
+    name: "Apply clang-format"
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request and github.event.comment.body == 'Auto clang-format'
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: master
+      - name: Install clang-format-11
+        run: |
+          sudo apt-get install clang-format-11
+      - name: Format the code
+        run: |
+          files=$(
+            git diff --name-only ${{ github.event.pull_request.base.ref }} HEAD
+            | grep -v dependencies/
+            | grep -E '(\.h|\.cpp)'
+          )
+          clang-format-11 -i $files
+      - name: Create a commit
+        run: |
+          git set author.name 'Freeciv21 automation'
+          git set author.email 'freeciv21@longturn.net'
+          git commit -a \
+            -m "Automated clang-format" \
+            -m "Files changed: $files" \
+            -m "See PR #${{ github.event.pull_request.number }}"
