@@ -1,6 +1,7 @@
 name: Automation
-issue_comment:
-  types: [created]
+  on:
+    issue_comment:
+      types: [created]
 
 jobs:
   apply-clang-format:
