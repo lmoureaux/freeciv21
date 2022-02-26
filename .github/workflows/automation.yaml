@@ -7,33 +7,44 @@ jobs:
   apply-clang-format:
     name: "Apply clang-format"
     runs-on: ubuntu-latest
+    if: contains(github.event.comment.body, 'Auto clang-format')
     #if: github.event.issue.pull_request
     steps:
+      - uses: actions/github-script@v5
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Gotcha'
+            })
       - name: debug
         run: |
           echo ${{ github.event.issue.pull_request }}
           echo ${{ github.event.comment.body }}
           exit 1
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: master
-      - name: Install clang-format-11
-        run: |
-          sudo apt-get install clang-format-11
-      - name: Format the code
-        run: |
-          files=$(
-            git diff --name-only ${{ github.event.pull_request.base.ref }} HEAD
-            | grep -v dependencies/
-            | grep -E '(\.h|\.cpp)'
-          )
-          clang-format-11 -i $files
-      - name: Create a commit
-        run: |
-          git set author.name '${{ github.event.comment.author.name }} via automation'
-          git set author.email '${{ github.event.comment.author.email }}'
-          git commit -a \
-            -m "Automated clang-format" \
-            -m "Files changed: $files" \
-            -m "See PR #${{ github.event.pull_request.number }}"
+      #- uses: actions/checkout@v2
+        #with:
+          #fetch-depth: 0
+          #ref: master
+      #- name: Install clang-format-11
+        #run: |
+          #sudo apt-get install clang-format-11
+      #- name: Format the code
+        #run: |
+          #files=$(
+            #git diff --name-only ${{ github.event.pull_request.base.ref }} HEAD
+            #| grep -v dependencies/
+            #| grep -E '(\.h|\.cpp)'
+          #)
+          #clang-format-11 -i $files
+      #- name: Create a commit
+        #run: |
+          #git set author.name '${{ github.event.comment.author.name }} via automation'
+          #git set author.email '${{ github.event.comment.author.email }}'
+          #git commit -a \
+            #-m "Automated clang-format" \
+            #-m "Files changed: $files" \
+            #-m "See PR #${{ github.event.pull_request.number }}"
