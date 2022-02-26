@@ -34,10 +34,11 @@ jobs:
             \( -name '*.h' -o -name '*.cpp' \) \
             -print \
             -exec clang-format-11 -i '{}' +
-      - name: Create a commit
+      - name: Commit
         run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'actions@github.com>'
           git commit -a \
-            --author 'github-actions[bot] <actions@github.com>'
             -m "Automated clang-format" \
             -m "Files changed: $files" \
             -m "See PR #${{ github.event.pull_request.number }}"
