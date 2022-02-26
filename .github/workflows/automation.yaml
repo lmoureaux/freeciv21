@@ -44,5 +44,6 @@ jobs:
             -m "Automated clang-format" \
             -m "Files changed: $files" \
             -m "See PR #${{ github.event.pull_request.number }}"
+          git log -50
           git push "https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}" \
             "HEAD:${GITHUB_REF_NAME}"
