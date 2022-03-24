@@ -10,7 +10,7 @@ jobs:
     if: >-
       github.event.issue.pull_request
       && contains(github.event.comment.body, 'Auto clang-format')
-      && github.event.comment.user == github.event.issue.user
+      && github.event.comment.user.id == github.event.issue.user.id
     steps:
       - uses: actions/github-script@v5
         with:
