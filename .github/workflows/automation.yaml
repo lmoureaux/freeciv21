@@ -29,7 +29,10 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Gotcha'
+              body: `
+                :baby_symbol:
+                @${ github.event.comment.user.login } has requested automatic reformatting of this branch (please avoid doing this for complex PRs).
+              `
             })
       - uses: actions/checkout@v2
         with:
