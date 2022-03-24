@@ -30,7 +30,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `
-                :baby_symbol:
+                :space_invader:
                 This branch will be reformatted automatically with \`clang-format\`. Please avoid doing this for complex PRs and use squash merge when it makes sense.
               `
             })
