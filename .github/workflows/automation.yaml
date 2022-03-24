@@ -7,10 +7,19 @@ jobs:
   apply-clang-format:
     name: "Apply clang-format"
     runs-on: ubuntu-latest
+    # Conditions for the action to run:
+    # - It must be a comment on a PR
+    # - The comment must contain "Auto clang-format"
+    # - The author of the comment must be the PR author or a repo member. For
+    #   the values of author_association, see:
+    #    https://docs.github.com/en/graphql/reference/enums#commentauthorassociation
     if: >-
       github.event.issue.pull_request
       && contains(github.event.comment.body, 'Auto clang-format')
-      && github.event.comment.user.id == github.event.issue.user.id
+      && (github.event.comment.user.id == github.event.issue.user.id
+          || github.event.comment.author_association == 'OWNER'
+          || github.event.comment.author_association == 'MEMBER'
+          || github.event.comment.author_association == 'COLLABORATOR')
     steps:
       - uses: actions/github-script@v5
         with:
