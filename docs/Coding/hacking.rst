@@ -4,6 +4,7 @@
     SPDX-FileCopyrightText: 2022 James Robertson <jwrober@gmail.com>
     SPDX-FileCopyrightText: 2022 Pranav Sampathkumar <pranav.sampathkumar@gmail.com>
     SPDX-FileCopyrightText: 2022 NIKEA-SOFT
+    SPDX-FileCopyrightText: 2022 Louis Moureaux <m_louis30@yahoo.com>
 
 Freeciv21 Hacker's Guide
 ************************
@@ -19,22 +20,6 @@ This guide is intended to be a help for developers, wanting to mess with Freeciv
 The Server
 ==========
 
-General:
-
-The server main loop basically looks like:
-
-.. code-block:: rst
-
-    while (server_state == RUN_GAME_STATE) { /* looped once per turn */
-    do_ai_stuff();   /* do the ai controlled players */
-    sniff_packets(); /* get player requests and handle them */
-    end_turn();      /* main turn update */
-    game_next_year();
-
-
-Most time is spend in the :code:`sniff_packets()` function, where a :code:`select()` call waits for packets or
-input on stdin(server-op commands).
-
 Server Autogame Testing
 -----------------------
 
@@ -45,7 +30,7 @@ fixed bug, or as a random sequence of games in a while loop overnight.
 To start a server game with all AI players, create a file (below named civ.serv) with lines such as the
 following:
 
-.. code-block:: rst
+.. code-block:: sh
 
     # set gameseed 42       # repeat a particular game (random) sequence
     # set mapseed 42        # repeat a particular map generation sequence
@@ -59,19 +44,13 @@ following:
                             # toggled to AI mode
     start                   # start game
 
-
-.. note::
-    The server prompt is unusable when game with :code:`timeout` set to -1 is running. You can stop such game
-    with single :code:`ctrl+c`, and continue by setting :code:`timeout` to -1 again.
-
-
 The commandline to run server-only games can be typed as variations of:
 
-.. code-block:: rst
+.. code-block:: sh
 
-    $ while( time server/freeciv21-server -r civ.serv ); do date; done
+    $ while( time build/freeciv21-server -r civ.serv ); do date; done
     ---  or  ---
-    $ server/freeciv21-server -r civ.serv -f buggy1534.sav.gz
+    $ build/freeciv21-server -r civ.serv -f buggy1534.sav.gz
 
 
 To attach one or more clients to an autogame, remove the :code:`start` command, start the server program and
@@ -84,39 +63,36 @@ player that connects. Finally, type :code:`start` when you are ready to watch th
     update loads near the end of the game.
 
 
-The autogame mode with :code:`timeout -1` is only available in ``DEBUG`` versions and should not be used with
-clients as it removes virtually all the server gating controls.
-
 If you plan to compare results of autogames the following changes can be helpful:
 
 * :code:`define __FC_LINE__` to a constant value in :file:`./utility/log.h`.
-* :code:`undef LOG_TIMERS` in :file:`./utility/timing.h`.
 * deactivation of the event cache (:code:`set ec_turns 0`).
 
 
-Data Structures
-===============
+Old Lists
+=========
 
-For variable length list of fx units and cities Freeciv21 uses a :code:`genlist`, which is implemented in
-:file:`utility/genlist.cpp`. By some macro magic type specific macros have been defined, avoiding much trouble.
+For variable length list of units and cities Freeciv21 uses a :code:`genlist`, which is implemented in
+:file:`utility/genlist.cpp`. By some macro magic type specific macros have been defined, creating a lot of
+trouble for C++ programmers. These macro-based lists are being phased out in favor of STL containers; in the
+meantime, we preserve here an explanation of how to use them.
 
-For example a tile struct (the pointer to it we call :code:`ptile`) has a unit list, :code:`ptile->units`; to
-iterate though all the units on the tile you would do the following:
+For example a ``tile`` struct (the pointer to it we call :code:`ptile`) has a ``unit`` list,
+:code:`ptile->units`; to iterate though all the units on the tile you would do the following:
 
-.. code-block:: rst
+.. code-block:: cpp
 
     unit_list_iterate(ptile->units, punit) {
-    /* In here we could do something with punit, which is a pointer to a
-        unit struct */
+      // In here we could do something with punit, which is a pointer to a
+      // unit struct
     } unit_list_iterate_end;
-
 
 Note that the macro itself declares the variable :code:`punit`. Similarly there is a
 
-.. code-block:: rst
+.. code-block:: cpp
 
     city_list_iterate(pplayer->cities, pcity) {
-    /* Do something with pcity, the pointer to a city struct */
+      // Do something with pcity, the pointer to a city struct
     } city_list_iterate_end;
 
 
@@ -131,8 +107,6 @@ the way :code:`unit_list_iterate` works, if the removed unit was the following n
 will already have saved the pointer, and use it in a moment, with a segfault as the result. To avoid this, use
 :code:`unit_list_iterate_safe` instead.
 
-You can also define your own lists with operations like iterating. Read how in :file:`utility/speclist.h`.
-
 Network and Packets
 ===================
 
@@ -143,7 +117,7 @@ structures. These are defined in :file:`common/packets.h`.
 
 For each ``foo`` packet structure, there is one send and one receive function:
 
-.. code-block:: rst
+.. code-block:: cpp
 
     int send_packet_foo(struct connection *pc, struct packet_foo *packet);
     struct packet_foo * receive_packet_foo(struct connection *pc);
@@ -160,7 +134,7 @@ Each structure field in a structure is serialized using architecture independent
 A packet is constituted by a header followed by the serialized structure data. The header contains the
 following fields (the sizes are defined in :file:`common/packets.cpp`:code:`packet_header_set()`):
 
-.. code-block:: rst
+.. code-block:: cpp
 
     uint16 : length (the length of the entire packet)
     uint16 : type   (e.g. PACKET_TILE_INFO)
@@ -170,7 +144,7 @@ For backward compatibility reasons, packets used for the initial protocol (notab
 capabilities) have different header fields sizes as defined in
 :file:`common/packets.c`:code:`packet_header_init()`:
 
-.. code-block:: rst
+.. code-block:: cpp
 
     uint16 : length (the length of the entire packet)
     uint8  : type   (e.g. PACKET_SERVER_JOIN_REQ)
@@ -263,8 +237,7 @@ in strategic places in the code calls to a new :code:`flush_packets()` function 
 for some time draining the send buffers. Strategic places include whenever we send the whole map. The maximum
 amount of time spent per :code:`flush_packets()` call is specified by the ``netwait`` variable.
 
-To disconnect unreachable clients we added two other features: the server terminates a client connection if it
-does not accept writes for a period of time (set using the :literal:`tcptimeout` variable). It also pings the
+To disconnect unreachable clients, the server pings the
 client after a certain time elapses (set using the :literal:`pingtimeout` variable). If the client does not
 reply its connection is closed.
 
@@ -288,13 +261,6 @@ There are multiple copies of each tile, so that a different copy can be drawn de
 the adjacent tiles. It may eventually be worthwhile to convert this to the civ2 system or another one
 altogether.
 
-Diplomacy
-=========
-
-A few words about the Diplomacy system. When a Diplomacy meeting is established, a treaty structure is created
-on both of the clients and on the server. All these structures are updated concurrently as clauses are added
-and removed.
-
 Map Structure
 =============
 
@@ -304,59 +270,59 @@ see the struct in :file:`common/map.h`.
 
 You may iterate tiles, you may use the following methods:
 
-.. code-block:: rst
+.. code-block:: cpp
 
     whole_map_iterate(tile_itr) {
-      /* do something */
+      // do something
     } whole_map_iterate_end;
 
 
 for iterating all tiles of the map;
 
-.. code-block:: rst
+.. code-block:: cpp
 
     adjc_iterate(center_tile, tile_itr) {
-      /* do something */
+      // do something
     } adjc_iterate_end;
 
 
 for iterating all tiles close to ``center_tile``, in all *valid* directions for the current topology (see
 below);
 
-.. code-block:: rst
+.. code-block:: cpp
 
     cardinal_adjc_iterate(center_tile, tile_itr) {
-      /* do something */
+      // do something
     } cardinal_adjc_iterate_end;
 
 
 for iterating all tiles close to ``center_tile``, in all *cardinal* directions for the current topology (see
 below);
 
-.. code-block:: rst
+.. code-block:: cpp
 
     square_iterate(center_tile, radius, tile_itr) {
-      /* do something */
+      // do something
     } square_iterate_end;
 
 
 for iterating all tiles in the radius defined ``radius`` (in real distance, see below), beginning by
 ``center_tile``;
 
-.. code-block:: rst
+.. code-block:: cpp
 
     circle_iterate(center_tile, radius, tile_itr) {
-      /* do something */
+      // do something
     } square_iterate_end;
 
 
 for iterating all tiles in the radius defined ``radius`` (in square distance, see below), beginning by
 ``center_tile``;
 
-.. code-block:: rst
+.. code-block:: cpp
 
     iterate_outward(center_tile, real_dist, tile_itr) {
-      /* do something */
+      // do something
     } iterate_outward_end;
 
 
@@ -367,11 +333,11 @@ possible, the examples above were only included to give people the knowledge of 
 
 Note that the following:
 
-.. code-block:: rst
+.. code-block:: cpp
 
     for (x1 = x-1; x1 <= x+1; x1++) {
       for (y1 = y-1; y1 <= y+1; y1++) {
-        /* do something */
+        // do something
       }
     }
 
@@ -672,7 +638,7 @@ Converting from native to map coordinates (a less cumbersome operation) is the o
 
 Note that:
 
-.. code-block:: rst
+.. code-block:: cpp
 
   native_to_map_pos(0, 0) == (0, map.xsize-1)
   native_to_map_pos(map.xsize-1, 0) == (map.xsize-1, 0)
@@ -682,7 +648,7 @@ Note that:
 
 The math then works out to:
 
-.. code-block:: rst
+.. code-block:: cpp
 
   map_x = ceiling(nat_y / 2) + nat_x
   map_y = floor(nat_y / 2) - nat_x + map.xsize - 1
@@ -699,7 +665,7 @@ Unknown Tiles and Fog of War
 
 In :file:`common/player.h`, there are several fields:
 
-.. code-block:: rst
+.. code-block:: cpp
 
     struct player {
       ...
@@ -719,9 +685,9 @@ In :file:`common/player.h`, there are several fields:
 
 While :code:`tile_get_known()` returns:
 
-.. code-block:: rst
+.. code-block:: cpp
 
-    /* network, order dependent */
+    // network, order dependent
     enum known_type {
     TILE_UNKNOWN = 0,
     TILE_KNOWN_UNSEEN = 1,
@@ -792,103 +758,6 @@ which should be improved upon.
 tile ownership is decided only by the server, and sent to the clients, which draw border lines between tiles
 of differing ownership. Owner information is sent for all tiles that are known by a client, whether or not
 they are fogged.
-
-Generalized Actions
-===================
-
-An action is something a player can do to achieve something in the game. Not all actions are enabler
-controlled yet.
-
-Generalized Action Meaning
---------------------------
-
-A design goal for the action sub-system is to keep the meaning of action game rules clear. To achieve this
-actions should keep having clear semantics. There should not be a bunch of exceptions to how, for example, an
-action enabler is interpreted based on what action it enables. This keeps action related rules easy to
-understand for ruleset authors and easy to automatically reason about. Both for parts of Freeciv21 like menus,
-help text generation and agents and for third party tools.
-
-Please do not make non-actions into actions because they are similar to actions or because some of the things
-Freeciv21 automatically does for actions would be nice to have. Abstract out the stuff you want instead. Make
-it apply to both actions and to the thing you wanted.
-
-An action is something a player can order a game entity, the actor, to do. An action does something in the
-game itself as defined by the game rules. It should not matter if those game rules run on the Freeciv21 server
-or on a human Empire. An action can be controlled by game rules. That control cannot be broken by a patched
-client or by a quick player. An action is at the level where the rules apply. A sequence of actions is not an
-action. Parts of an action is not an action.
-
-Putting a unit in a group so they quickly can select it with the rest of the units in the group and the server
-can save what group a unit belongs to is server side client state, not an action. The rules do not care what
-group a unit belongs to. Adding a unit to an army where the game rules treat units in armies different from
-units outside an army, for example by having them attack as one unit, would be an action.
-
-Putting a unit under the control of the auto-settlers server side agent is not an action. The player could
-modify his client to automatically give the same orders as auto-settlers would have given or even give those
-orders by hand.
-
-Leaving a destroyed :unit:`Transport` is not an action. The player cannot order a unit to perform this action.
-Having a unit destroy its :unit:`Transport` and then leave it is an action. Leaving a :unit:`Transport` "mid
-flight", no matter if it was destroyed or not, and having a certain probability of surviving to show up
-somewhere else is an action.
-
-Please do not add action (result) specific interpretations of requirements in action enablers. If you need a
-custom interpretation define a new actor kind or target kind.
-
-Connections
-===========
-
-The code is currently transitioning from 1 or 0 connections per player only, to allow multiple connections
-for each player (recall 'player' means a civilization, see above), where each connection may be either an
-"observer" or "controller".
-
-This discussion is mostly about connections on the server. The client only has one real connection
-(:code:`client.conn`) – its connection to the server - though it does use some other connection structures
-(currently :code:`pplayer->conn`) to store information about other connected clients (e.g., capability
-strings).
-
-In the old paradigm, server code would usually send information to a single player, or to all connected
-players, usually represented by destination being a ``NULL`` player pointer. With multiple connections per
-player things become more complicated. Sometimes information should be sent to a single connection, or to all
-connections for a single player, or to all (established) connections, etc. To handle this, "destinations"
-should now be specified as a pointer to a :code:`struct conn_list` (list of connections). For convenience the
-following commonly applicable lists are maintained:
-
-* :code:`game.all_connections`   -  all connections
-* :code:`game.est_connections`   -  established connections
-* :code:`game.game_connections`  -  connections observing and/or involved in game
-* :code:`pplayer->connections`   -  connections for specific player
-* :code:`pconn->self`            -  single connection (as list)
-
-Connections can be classified as follows: (first match applies)
-
-#. :code:`pconn->used == 0`: Not a real connection (closed/unused), should not exist in any list of have any
-   information sent to it.
-
-All following cases exist in game.all_connections.
-
-#. :code:`pconn->established == 0`: TCP connection has been made, but initial Freeciv21 packets have not yet
-   been negotiated (:code:`join_game` etc.). Exists in :code:`game.all_connections` only. Should not be sent
-   any information except directly as result of :code:`join_game` etc. packets, or server shutdown, or
-   connection close, etc.
-
-All following cases exist in :code:`game.est_connections`.
-
-#. :code:`pconn->player == NULL`: Connection has been established, but is not yet associated with a player.
-   Currently this is not possible, but the plan is to allow this in the future, so clients can connect and
-   then see a list of players to choose from, or just control the server, or observe, etc. Two subcases:
-
-   #. :code:`pconn->observer == 0`: Not observing the game. Should receive information about other clients,
-      game status etc., but not map, units, cities, etc.
-
-   All following cases exist in game.game_connections.
-
-   #. :code:`pconn->observer == 1`: Observing the game. Exists in :code:`game.game_connections`. Should
-      receive game information about map, units, cities, etc.
-
-#. :code:`pconn->player != NULL`: Connected to specific player, either as "observer" or "controller". Exists
-   in :code:`game.game_connections`, and in :code:`pconn->player->connections`.
-
 
 Internationalization (I18N)
 ===========================

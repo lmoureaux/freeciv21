@@ -2,6 +2,7 @@
     SPDX-License-Identifier: GPL-3.0-or-later
     SPDX-FileCopyrightText: 1996-2021 Freeciv Contributors
     SPDX-FileCopyrightText: 2022 James Robertson <jwrober@gmail.com>
+    SPDX-FileCopyrightText: 2022 Louis Moureaux <m_louis30@yahoo.com>
 
 Artificial Intelligence (AI)
 ****************************
@@ -13,15 +14,17 @@ Artificial Intelligence (AI)
 
 This document is about Freeciv21's default AI.
 
+.. warning::
+
+    The contents of this page are over 20 years old and have not been reviewed for correctness.
+
 Introduction
 ============
 
-The Freeciv21 AI is widely recognized as being as good as or better military-wise as the AI of certain other
-games it is natural to compare it with. It is, however, still too easy for experienced players, mostly due
-to it being very predictable.
-
+The Freeciv21 AI is capable of developing complex nations and provides a challenging opponent for beginners.
+It is, however, still too easy for experienced players, mostly due to it being very predictable.
 Code that implements the AI is divided between the :file:`ai/` and :file:`server/advisors` code directories.
-The latter is used also by human players for such automatic helpers such as auto-settlers and auto-explorers.
+The latter is used also by human players for automatic helpers such as auto-settlers and auto-explorers.
 
 
 Long-Term AI Development Goals
