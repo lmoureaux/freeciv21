@@ -12,6 +12,7 @@ jobs:
     # Unprivileged action that runs clang-tidy and produces report.json in
     # Codacy format.
     name: Run clang-tidy
+    needs: clang-format
     permissions: {} # Security: run cmake from a fully unprivileged context
     runs-on: ubuntu-latest
     steps:
