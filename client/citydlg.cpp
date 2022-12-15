@@ -121,9 +121,9 @@ unit_list_widget::unit_list_widget(QWidget *parent) : QListWidget(parent)
  */
 QSize unit_list_widget::viewportSizeHint() const
 {
-  if (!m_oneliner) {
-    return QSize(1, 5555);
-  }
+  // if (!m_oneliner) {
+    // return QSize(1, 5555);
+  // }
   // Try to put everything on one line
   QSize hint;
   for (int i = 0; i < count(); ++i) {
@@ -2043,12 +2043,6 @@ void city_dialog::refresh()
 
   ui.production_combo_p->blockSignals(false);
   setUpdatesEnabled(true);
-
-  auto scale = queen()->mapview_wdg->scale();
-  ui.middleSpacer->changeSize(scale * get_citydlg_canvas_width(),
-                              scale * get_citydlg_canvas_height(),
-                              QSizePolicy::Expanding,
-                              QSizePolicy::Expanding);
 
   updateGeometry();
   update();
