@@ -13,11 +13,20 @@ jobs:
       - run: git rev-parse --short=5 HEAD > cmake/AutoRevision.txt
       - run: git describe --tags `git rev-list --tags --max-count=1` >> cmake/AutoRevision.txt
       - run: cat cmake/AutoRevision.txt
+      - name: Find target branch
+        id: branch
+        # We're running on a tag so have no direct access to the branch. Find it.
+        # echo is used to trim whitespace
+        run: |
+          git branch -a
+          echo Target branch: $(git branch --contains HEAD)
+          echo branch=$(echo $(git branch --contains HEAD)) >> $GITHUB_OUTPUT
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4.0.4
         with:
+          base: ${{ steps.branch.outputs.branch }}
           commit-message: "Release update of AutoRevision.txt"
-          branch: "release/autorevision"
+          branch: "release/autorevision-{{ steps.branch.outputs.target }}"
           title: "Release update of AutoRevision.txt"
           body: >
             Automatic changes triggered by a new release.
