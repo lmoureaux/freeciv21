@@ -20,7 +20,8 @@ COPYING          text
 *.h              text diff=cpp
 *.h.in           text diff=cpp
 *.py             text diff=python
-*.cmd            text eol=crlf
+*.cmd            text
+# eol=crlf
 *.sh             text eol=lf
 *.yaml           text
 *.yml            text
